@@ -1,0 +1,184 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Data Persuratan</title>
+
+<style>
+body{
+font-family:Arial;
+padding:20px;
+background:#f4f4f4;
+}
+
+h1{
+text-align:center;
+}
+
+table{
+border-collapse:collapse;
+width:100%;
+background:white;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:8px;
+font-size:14px;
+}
+
+th{
+background:#2c7be5;
+color:white;
+}
+
+.filter{
+margin-bottom:15px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>DATA STATUS PERSURATAN FUAD</h1>
+
+<div class="filter">
+
+Cari Nama :
+<input type="text" id="search" onkeyup="filterData()">
+
+&nbsp;&nbsp;
+
+Bulan :
+<input type="month" id="bulanAwal">
+s/d
+<input type="month" id="bulanAkhir">
+
+<button onclick="filterData()">Filter</button>
+
+</div>
+
+<table id="dataTable">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>TGL INPUT</th>
+<th>NAMA</th>
+<th>NIM</th>
+<th>PRODI</th>
+<th>PELAYANAN</th>
+<th>EMAIL</th>
+<th>STATUS BERKAS</th>
+<th>KETERANGAN</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+<script>
+
+let sheetID = "1RLec0Yj2adsvkNKgsdkiZZ2NWzpp80g3H7qDzo4WNTc";
+let sheetName = "EDITING AREA";
+
+let url = `https://opensheet.elk.sh/${sheetID}/${sheetName}`;
+
+let allData = [];
+
+function loadData(){
+
+fetch(url)
+.then(res => res.json())
+.then(data => {
+
+allData = data.reverse(); // descending
+
+filterData();
+
+});
+
+}
+
+function filterData(){
+
+let table = document.querySelector("#dataTable tbody");
+table.innerHTML = "";
+
+let search = document.getElementById("search").value.toLowerCase();
+
+let bulanAwal = document.getElementById("bulanAwal").value;
+let bulanAkhir = document.getElementById("bulanAkhir").value;
+
+allData.forEach(row => {
+
+let nama = (row.NAMA ?? "").toLowerCase();
+let tgl = row["TGL INPUT"] ?? "";
+
+if(nama=="" ) return;
+
+let tampil = true;
+
+/* filter nama */
+
+if(search && !nama.includes(search)){
+tampil=false;
+}
+
+/* filter bulan */
+
+if(bulanAwal || bulanAkhir){
+
+let tanggal = new Date(tgl);
+
+if(bulanAwal){
+let awal = new Date(bulanAwal);
+if(tanggal < awal) tampil=false;
+}
+
+if(bulanAkhir){
+let akhir = new Date(bulanAkhir);
+akhir.setMonth(akhir.getMonth()+1);
+if(tanggal > akhir) tampil=false;
+}
+
+}
+
+if(!tampil) return;
+
+let tr = document.createElement("tr");
+
+tr.innerHTML = `
+<td>${row.ID ?? ""}</td>
+<td>${row["TGL INPUT"] ?? ""}</td>
+<td>${row.NAMA ?? ""}</td>
+<td>${row.NIM ?? ""}</td>
+<td>${row.PRODI ?? ""}</td>
+<td>${row.PELAYANAN ?? ""}</td>
+<td>${row.EMAIL ?? ""}</td>
+<td>${row["STATUS BERKAS"] ?? ""}</td>
+<td>${row.KETERANGAN ?? ""}</td>
+`;
+
+table.appendChild(tr);
+
+});
+
+}
+
+/* load pertama */
+
+loadData();
+
+/* realtime update tiap 10 detik */
+
+setInterval(loadData,10000);
+
+</script>
+
+</body>
+</html>
+```
